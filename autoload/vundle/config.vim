@@ -180,7 +180,20 @@ endf
 " runtimepath.
 " ---------------------------------------------------------------------------
 func! s:rtp_rm_a()
-  let paths = map(copy(g:bundles), 'v:val.rtpath')
+  let paths_a = map(copy(g:bundles), 'v:val.rtpath')
+
+  let paths = []
+  for path in paths_a
+    if type(path) == type([])
+      for item in path
+        call add(paths, item)
+      endfor
+    else
+      call add(paths, path)
+    endif
+    unlet path
+  endfor
+
   let prepends = join(paths, ',')
   let appends = join(paths, '/after,').'/after'
   exec 'set rtp-='.fnameescape(prepends)
@@ -193,7 +206,20 @@ endf
 " runtimepath.
 " ---------------------------------------------------------------------------
 func! s:rtp_add_a()
-  let paths = map(copy(g:bundles), 'v:val.rtpath')
+  let paths_a = map(copy(g:bundles), 'v:val.rtpath')
+
+  let paths = []
+  for path in paths_a
+    if type(path) == type([])
+      for item in path
+        call add(paths, item)
+      endfor
+    else
+      call add(paths, path)
+    endif
+    unlet path
+  endfor
+
   let prepends = join(paths, ',')
   let appends = join(paths, '/after,').'/after'
   exec 'set rtp^='.fnameescape(prepends)
@@ -208,8 +234,15 @@ endf
 "           'after' directory will also be removed.
 " ---------------------------------------------------------------------------
 func! s:rtp_rm(dir) abort
-  exec 'set rtp-='.fnameescape(expand(a:dir, 1))
-  exec 'set rtp-='.fnameescape(expand(a:dir.'/after', 1))
+  if type(a:dir) == type([])
+    for dir in a:dir
+      exec 'set rtp-='.fnameescape(expand(dir, 1))
+      exec 'set rtp-='.fnameescape(expand(dir.'/after', 1))
+    endfor
+  else
+    exec 'set rtp-='.fnameescape(expand(a:dir, 1))
+    exec 'set rtp-='.fnameescape(expand(a:dir.'/after', 1))
+  endif
 endf
 
 
@@ -220,8 +253,15 @@ endf
 "           'after' directory will also be added.
 " ---------------------------------------------------------------------------
 func! s:rtp_add(dir) abort
-  exec 'set rtp^='.fnameescape(expand(a:dir, 1))
-  exec 'set rtp+='.fnameescape(expand(a:dir.'/after', 1))
+  if type(a:dir) == type([])
+    for dir in a:dir
+      exec 'set rtp^='.fnameescape(expand(dir, 1))
+      exec 'set rtp+='.fnameescape(expand(dir.'/after', 1))
+    endfor
+  else
+    exec 'set rtp^='.fnameescape(expand(a:dir, 1))
+    exec 'set rtp+='.fnameescape(expand(a:dir.'/after', 1))
+  endif
 endf
 
 
@@ -245,7 +285,20 @@ endf
 " return -- expanded path to the corresponding plugin directory
 " ---------------------------------------------------------------------------
 func! s:rtpath(opts)
-  return has_key(a:opts, 'rtp') ? s:expand_path(a:opts.path().'/'.a:opts.rtp) : a:opts.path()
+  "return has_key(a:opts, 'rtp') ? s:expand_path(a:opts.path().'/'.a:opts.rtp) : a:opts.path()
+  if has_key(a:opts, 'rtp')
+    if type(a:opts.rtp) == type([])
+      let path_list = []
+      for path in a:opts.rtp
+        call add(path_list, s:expand_path(a:opts.path().'/'.path))
+      endfor
+      return path_list
+    else
+      return s:expand_path(a:opts.path().'/'.a:opts.rtp)
+    endif
+  else
+    return a:opts.path()
+  endif
 endf
 
 

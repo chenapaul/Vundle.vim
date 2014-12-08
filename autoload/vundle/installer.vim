@@ -188,7 +188,20 @@ endf
 " return  -- the number of directories where :helptags failed
 " ---------------------------------------------------------------------------
 func! vundle#installer#helptags(bundles) abort
-  let bundle_dirs = map(copy(a:bundles),'v:val.rtpath')
+  let bundle_dirs_a = map(copy(a:bundles),'v:val.rtpath')
+
+  let bundle_dirs = []
+  for bundle_dir in bundle_dirs_a
+    if type(bundle_dir) == type([])
+      for item in bundle_dir
+        call add(bundle_dirs, item)
+      endfor
+    else
+      call add(bundle_dirs, bundle_dir)
+    endif
+    unlet bundle_dir
+  endfor
+
   let help_dirs = filter(bundle_dirs, 's:has_doc(v:val)')
 
   call s:log('')
